@@ -4,17 +4,20 @@ import mario from './utils/mario';
 import bump from './utils/bump';
 import enemy from './utils/enimes';
 import patrol from './utils/patrol';
-kaboom({
+const instance =kaboom({
   background: [134, 135, 247],
-  width: 400,
-  height: 230,
+  // width: 400,
+  // height: 230,
   scale: 2,
+  
 });
 
+instance.fullscreen(true);
 
 loadRoot("assets/");
 loadAseprite("mario", "mario.png", "mario.json");
 loadAseprite("enemies", "enemies.png", "enemies.json");
+loadSprite("titles", "titles.png");
 loadSprite("ground", "ground.png");
 loadSprite("questionBox", "questionBox.png");
 loadSprite("emptyBox", "emptyBox.png");
@@ -27,7 +30,9 @@ loadSprite("shrubbery", "shrubbery.png");
 loadSprite("hill", "hill.png");
 loadSprite("cloud", "cloud.png");
 loadSprite("castle", "castle.png");
-
+loadSound("game_sound", "audio/music_game.ogg");
+loadSound("bump_sound", "audio/bump.ogg");
+loadSound("jump_sound", "audio/small.ogg");
 
 const levelConf = {
   // grid size
@@ -144,26 +149,26 @@ const levelConf = {
   ]
 };
 
-
 scene("start", () => {
 
-  add([
-    text("Press enter to start", { size: 24 }),
-    pos(vec2(160, 120)),
-    origin("center"),
-    color(255, 255, 255),
-  ]);
 
-  keyRelease("enter", () => {
+  add([
+    text("Click enter to start the game", { size: 24}),
+    pos(center()),
+    origin("center"),
+    layer('ui'),
+    color(255,255,255)
+  ])
+  onKeyRelease('enter', () => {
     go("game");
   })
-});
-
-go("start");
-
+})
 
 scene("game", (levelNumber = 0) => {
+  const gameSound = play("game_sound", { loop: true});
+  
 
+  gameSound.play();
   layers([
     "bg",
     "game",
@@ -175,32 +180,40 @@ scene("game", (levelNumber = 0) => {
 
   add([
     sprite("cloud"),
-    pos(20, 50),
+    pos(20, height() - 200),
+    layer("bg")
+  ]);
+  add([
+    sprite("cloud"),
+    pos(70, height() - 140),
+    layer("bg")
+  ]);
+  add([
+    sprite("cloud"),
+    pos(width() / 3, height() - 220),
+    
+    layer("bg")
+  ]);
+  add([
+    sprite("titles"),
+    pos(width()/2, height() / 4),
+    area({ width: 80, height: 80}),
     layer("bg")
   ]);
 
   add([
     sprite("hill"),
-    pos(32, 208),
+    pos(32, height() - 20),
     layer("bg"),
     origin("bot")
   ])
 
   add([
     sprite("shrubbery"),
-    pos(200, 208),
+    pos(200, height() - 22),
     layer("bg"),
     origin("bot")
   ])
-
-  add([
-    text("Level " + (levelNumber + 1), { size: 24 }),
-    pos(vec2(160, 120)),
-    color(255, 255, 255),
-    origin("center"),
-    layer('ui'),
-    lifespan(1, { fade: 0.5 })
-  ]);
 
   const player = level.spawn("p", 1, 10)
 
@@ -221,9 +234,13 @@ scene("game", (levelNumber = 0) => {
   });
 
   onKeyPress("space", () => {
+    const jumpSound = play("jump_sound");
     if (player.isAlive && player.grounded()) {
+      jumpSound.play();
       player.jump();
       canSquash = true;
+    }else {
+      jumpSound.stop();
     }
   });
 
@@ -239,6 +256,7 @@ scene("game", (levelNumber = 0) => {
     }
 
     if (player.pos.y > height() - 20){
+      gameSound.stop();
       killed();
     }
    
@@ -271,7 +289,7 @@ scene("game", (levelNumber = 0) => {
       layer('ui'),
     ]);
     wait(2, () => {
-      go("start");
+      go("game");
     })
   }
 
@@ -311,8 +329,8 @@ scene("game", (levelNumber = 0) => {
       let nextLevel = levelNumber + 1;
 
       if (nextLevel >= LEVELS.length) {
-        go("start");
       } else {
+
         go("game", nextLevel);
       }
     })
@@ -321,11 +339,4 @@ scene("game", (levelNumber = 0) => {
 
 });
 
-
-
-
-
-
-
-
-
+go("start")
