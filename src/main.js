@@ -38,7 +38,7 @@ const levelConf = {
   // grid size
   width: 16,
   height: 16,
-  pos: vec2(0, 0),
+  
   // define each object as a list of components
   "=": () => [
     sprite("ground"),
@@ -273,6 +273,7 @@ scene("game", (levelNumber = 0) => {
       if (player.isBig) {
         player.smaller();
       } else {
+        gameSound.stop()
         killed();
       }
     }
